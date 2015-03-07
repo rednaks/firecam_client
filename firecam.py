@@ -1,10 +1,20 @@
 import socket
 import sys
+import base64
 
+
+frame = None
 
 def usage():
   print 'Usage : {0} <ip>'.format(sys.argv[0])
   print 'ip : FirefoxOS IP address on your local network'
+
+
+def update_frame(aData):
+  #remove the header
+  data = aData.replace('data:image/png;base64,', '')
+  # base64 decode
+  frame = base64.b64decode(data)
 
 
 if __name__ == '__main__':
@@ -20,12 +30,13 @@ if __name__ == '__main__':
     print e
     sys.exit(-1)
 
+
   the_data = ""
   while True:
     data = s.recv(1024)
     if(data.startswith('data:')):
-      # update the image TODO
-
+      # update the image
+      update_frame(the_data)
       # restart the process
       the_data = data
     else:
