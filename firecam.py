@@ -1,6 +1,8 @@
 import socket
 import sys
 import base64
+import threading
+
 
 
 frame = None
@@ -17,28 +19,38 @@ def update_frame(aData):
   frame = base64.b64decode(data)
 
 
+class ThreadedConn(threading.Thread):
+  def run(self):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+      s.connect((sys.argv[1], 8080))
+    except Exception as e:
+      print e
+      sys.exit(-1)
+
+
+    the_data = ""
+    while True:
+      data = s.recv(1024)
+      if(data.startswith('data:')):
+        # update the image
+        update_frame(the_data)
+        # restart the process
+        the_data = data
+      else:
+        the_data = the_data + data
+
+
 if __name__ == '__main__':
 
   if(len(sys.argv) < 2):
     usage()
     sys.exit(-1)
 
-  s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-  try:
-    s.connect((sys.argv[1], 8080))
-  except Exception as e:
-    print e
-    sys.exit(-1)
+  th = ThreadedConn(name="Connection deamon")
+  th.start()
 
 
-  the_data = ""
-  while True:
-    data = s.recv(1024)
-    if(data.startswith('data:')):
-      # update the image
-      update_frame(the_data)
-      # restart the process
-      the_data = data
-    else:
-      the_data = the_data + data
+
+
 
