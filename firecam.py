@@ -3,6 +3,8 @@ import sys
 import base64
 import threading
 
+import numpy
+import cv2
 
 
 frame = None
@@ -16,6 +18,7 @@ def update_frame(aData):
   #remove the header
   data = aData.replace('data:image/png;base64,', '')
   # base64 decode
+  global frame
   frame = base64.b64decode(data)
 
 
@@ -50,6 +53,18 @@ if __name__ == '__main__':
   th = ThreadedConn(name="Connection deamon")
   th.start()
 
+  print "Starting window loop"
+
+
+  while True:
+    if frame is not None:
+      print "Showing the image :)"
+      img = cv2.imdecode(numpy.frombuffer(frame, numpy.uint8), 
+          cv2.CV_LOAD_IMAGE_COLOR)
+
+      if img is not None:
+        cv2.imshow("FireCam", img)
+        cv2.waitKey(30)
 
 
 
