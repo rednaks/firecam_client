@@ -5,10 +5,12 @@ import threading
 
 import numpy
 import cv2
+import time
 
 
 frame = None
 die = False
+number_of_frames = 0
 
 def usage():
   print 'Usage : {0} <ip>'.format(sys.argv[0])
@@ -16,11 +18,28 @@ def usage():
 
 
 def update_frame(aData):
+  global number_of_frames
+  number_of_frames = number_of_frames +1
   #remove the header
   data = aData.replace('data:image/png;base64,', '')
   # base64 decode
   global frame
   frame = base64.b64decode(data)
+
+
+def reset_number_of_frames():
+  global number_of_frames
+  number_of_frames = 0
+
+class Timer(threading.Thread):
+  def run(self):
+    while True:
+      print "{0} fps".format(number_of_frames)
+      reset_number_of_frames()
+      time.sleep(1)
+      if(die):
+        break
+
 
 
 class ThreadedConn(threading.Thread):
@@ -55,6 +74,9 @@ if __name__ == '__main__':
 
   th = ThreadedConn(name="Connection deamon")
   th.start()
+
+  timer = Timer(name="Frames per second counter")
+  timer.start()
 
   print "Press Ctrl-C to close the program." 
 
