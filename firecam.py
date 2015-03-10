@@ -8,6 +8,7 @@ import cv2
 
 
 frame = None
+die = False
 
 def usage():
   print 'Usage : {0} <ip>'.format(sys.argv[0])
@@ -34,6 +35,8 @@ class ThreadedConn(threading.Thread):
 
     the_data = ""
     while True:
+      if(die):
+        break
       data = s.recv(1024)
       if(data.startswith('data:')):
         # update the image
@@ -53,18 +56,22 @@ if __name__ == '__main__':
   th = ThreadedConn(name="Connection deamon")
   th.start()
 
-  print "Starting window loop"
+  print "Press Ctrl-C to close the program." 
 
 
-  while True:
-    if frame is not None:
-      print "Showing the image :)"
-      img = cv2.imdecode(numpy.frombuffer(frame, numpy.uint8), 
-          cv2.CV_LOAD_IMAGE_COLOR)
 
-      if img is not None:
-        cv2.imshow("FireCam", img)
-        cv2.waitKey(30)
+  try:
+    while True:
+      if frame is not None:
+        img = cv2.imdecode(numpy.frombuffer(frame, numpy.uint8), 
+            cv2.CV_LOAD_IMAGE_COLOR)
+
+        if img is not None:
+          cv2.imshow("FireCam", img)
+          cv2.waitKey(30)
+  except KeyboardInterrupt as e:
+    print "Killing Connection thread"
+    die = True
 
 
 
